@@ -1,0 +1,537 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Nami.App"
+             xmlns:local="using:Nami"
+             RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <!-- ═══ Dark Theme (Windows 11 Layered Surface System) ═══ -->
+                <ResourceDictionary x:Key="Dark">
+                    <!-- Surface layers -->
+                    <SolidColorBrush x:Key="LayerFillColorDefault"     Color="#333A3A3A"/>
+                    <SolidColorBrush x:Key="ContentSurfaceFill"        Color="#1A202020"/>
+                    <SolidColorBrush x:Key="CardBackgroundFillDefault"  Color="#0DFFFFFF"/>
+                    <SolidColorBrush x:Key="CardBackgroundFillSecondary" Color="#08FFFFFF"/>
+                    <SolidColorBrush x:Key="SubtleFillColorSecondary"  Color="#0FFFFFFF"/>
+                    <SolidColorBrush x:Key="SubtleFillColorTertiary"   Color="#06FFFFFF"/>
+                    <!-- Strokes / dividers -->
+                    <SolidColorBrush x:Key="DividerStrokeColorDefault" Color="#15FFFFFF"/>
+                    <SolidColorBrush x:Key="CardStrokeColorDefault"    Color="#19FFFFFF"/>
+                    <!-- Hover -->
+                    <SolidColorBrush x:Key="CardHoverFillColor"        Color="#15FFFFFF"/>
+                    <!-- Text -->
+                    <SolidColorBrush x:Key="TextFillColorPrimaryBrush" Color="#FFFFFFFF"/>
+                    <SolidColorBrush x:Key="TextFillColorSecondary"    Color="#B3FFFFFF"/>
+                    <SolidColorBrush x:Key="TextFillColorTertiary"     Color="#66FFFFFF"/>
+                    <!-- Scrollbar -->
+                    <SolidColorBrush x:Key="ScrollBarTrackFill"        Color="#0AFFFFFF"/>
+                    <SolidColorBrush x:Key="ScrollBarTrackFillHover"   Color="#14FFFFFF"/>
+                    <SolidColorBrush x:Key="ScrollBarThumbFill"        Color="#50AAAAAA"/>
+                    <SolidColorBrush x:Key="ScrollBarThumbFillHover"   Color="#80B0B0B0"/>
+                    <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#A0C0C0C0"/>
+                    <!-- Input fields -->
+                    <SolidColorBrush x:Key="InputBackground"           Color="#12FFFFFF"/>
+                    <SolidColorBrush x:Key="InputBorderBrush"          Color="#18FFFFFF"/>
+                    <SolidColorBrush x:Key="InputBorderBrushHover"     Color="#30FFFFFF"/>
+                    <SolidColorBrush x:Key="InputBorderBrushFocus"     Color="#8B5CF6"/>
+                    <SolidColorBrush x:Key="InputForeground"           Color="#E8FFFFFF"/>
+                    <!-- Accent -->
+                    <SolidColorBrush x:Key="AccentPrimary"             Color="#8B5CF6"/>
+                    <SolidColorBrush x:Key="AccentSecondary"           Color="#A78BFA"/>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme />
+
+
+
+        <!-- ═══ Hide Fullscreen Button ═══ -->
+        <Style Selector="Button#PART_FullScreenButton">
+            <Setter Property="IsVisible" Value="False"/>
+            <Setter Property="Width" Value="0"/>
+            <Setter Property="Height" Value="0"/>
+        </Style>
+
+        <!-- ════════════════════════════════════════════════════
+             GLOBAL BUTTON STYLES
+             ════════════════════════════════════════════════════ -->
+
+        <!-- ── Primary Button (violet→pink gradient) ── -->
+        <Style Selector="Button.PrimaryButton">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#7C3AED" Offset="0"/>
+                        <GradientStop Color="#C026D3" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.12"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.PrimaryButton /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.PrimaryButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#8B5CF6" Offset="0"/>
+                        <GradientStop Color="#D946EF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.PrimaryButton:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.96)"/>
+        </Style>
+        <Style Selector="Button.PrimaryButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#6D28D9" Offset="0"/>
+                        <GradientStop Color="#A21CAF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- ── Secondary Button ── -->
+        <Style Selector="Button.SecondaryButton">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillSecondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondary}"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefault}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.SecondaryButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardHoverFillColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        </Style>
+        <Style Selector="Button.SecondaryButton:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.97)"/>
+        </Style>
+
+        <!-- ── Mini / Ghost Button ── -->
+        <Style Selector="Button.MiniButton">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillSecondary}"/>
+            <Setter Property="Foreground" Value="#A78BFA"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="CornerRadius" Value="7"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefault}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.MiniButton /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Foreground" Value="#A78BFA"/>
+        </Style>
+        <Style Selector="Button.MiniButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardHoverFillColor}"/>
+            <Setter Property="Foreground" Value="#C4B5FD"/>
+        </Style>
+
+        <!-- ── Dialog secondary button ── -->
+        <Style Selector="Button.DialogButton">
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundFillSecondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondary}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefault}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.DialogButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardHoverFillColor}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}"/>
+        </Style>
+
+        <!-- ── Primary Dialog button ── -->
+        <Style Selector="Button.PrimaryDialogButton">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#7C3AED" Offset="0"/>
+                        <GradientStop Color="#C026D3" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.PrimaryDialogButton /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.PrimaryDialogButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#8B5CF6" Offset="0"/>
+                        <GradientStop Color="#D946EF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.PrimaryDialogButton:pressed">
+            <Setter Property="RenderTransform" Value="scale(0.97)"/>
+        </Style>
+        <Style Selector="Button.PrimaryDialogButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#6D28D9" Offset="0"/>
+                        <GradientStop Color="#A21CAF" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.PrimaryDialogButton:disabled">
+            <Setter Property="Opacity" Value="0.4"/>
+        </Style>
+
+        <!-- ── Danger Button ── -->
+        <Style Selector="Button.DangerButton">
+            <Setter Property="Background" Value="#1A0810"/>
+            <Setter Property="Foreground" Value="#F87171"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderBrush" Value="#3D1220"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.DangerButton /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Foreground" Value="#F87171"/>
+        </Style>
+        <Style Selector="Button.DangerButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#280818"/>
+            <Setter Property="Foreground" Value="#FCA5A5"/>
+        </Style>
+        <Style Selector="Button.DangerButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1A0810"/>
+            <Setter Property="Foreground" Value="#F87171"/>
+        </Style>
+
+        <!-- ════════════════════════════════════════════════════
+             GLOBAL INPUT STYLES
+             ════════════════════════════════════════════════════ -->
+
+        <Style Selector="TextBlock.FormLabel">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiary}"/>
+            <Setter Property="Margin" Value="0,10,0,4"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+        </Style>
+
+        <Style Selector="TextBlock.SectionHeading">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#A78BFA"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{DynamicResource InputBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Foreground" Value="{DynamicResource InputForeground}"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="SelectionBrush" Value="#7C3AED"/>
+            <Setter Property="CaretBrush" Value="#A78BFA"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.18"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrushHover}"/>
+        </Style>
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrushFocus}"/>
+            <Setter Property="Background" Value="#15FFFFFF"/>
+        </Style>
+
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource InputBackground}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Foreground" Value="{DynamicResource InputForeground}"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="ComboBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrushHover}"/>
+        </Style>
+        <Style Selector="ComboBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrushFocus}"/>
+        </Style>
+
+        <!-- ── Tab Control ── -->
+        <Style Selector="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style Selector="TabItem">
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiary}"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="Margin" Value="0,0,1,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="TabItem:selected">
+            <Setter Property="Foreground" Value="#A78BFA"/>
+        </Style>
+        <Style Selector="TabItem:pointerover">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondary}"/>
+        </Style>
+        <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#7C3AED" Offset="0"/>
+                        <GradientStop Color="#C026D3" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ── CheckBox ── -->
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondary}"/>
+            <Setter Property="FontFamily" Value="Inter,Segoe UI,sans-serif"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <!-- ════════════════════════════════════════════════════
+             WINDOWS 11 FLUENT SCROLLBAR
+             ════════════════════════════════════════════════════ -->
+
+        <Style Selector="ScrollBar">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="AllowAutoHide" Value="False"/>
+        </Style>
+
+        <!-- Vertical ScrollBar -->
+        <Style Selector="ScrollBar:vertical">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="MinWidth" Value="14"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid Background="Transparent">
+                        <Border x:Name="TrackBg"
+                                Background="{DynamicResource ScrollBarTrackFill}"
+                                CornerRadius="100"
+                                Width="4"
+                                HorizontalAlignment="Center"
+                                Margin="0,4"/>
+                        <Track x:Name="PART_Track"
+                               IsDirectionReversed="True"
+                               Orientation="Vertical"
+                               Minimum="{TemplateBinding Minimum}"
+                               Maximum="{TemplateBinding Maximum}"
+                               Value="{TemplateBinding Value, Mode=TwoWay}"
+                               ViewportSize="{TemplateBinding ViewportSize}"
+                               Margin="0,4">
+                            <Track.Thumb>
+                                <Thumb x:Name="thumb"/>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ScrollBar:vertical /template/ Border#TrackBg">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ScrollBar:vertical:pointerover /template/ Border#TrackBg">
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource ScrollBarTrackFillHover}"/>
+        </Style>
+
+        <!-- Horizontal ScrollBar -->
+        <Style Selector="ScrollBar:horizontal">
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="MinHeight" Value="14"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Grid Background="Transparent">
+                        <Border x:Name="TrackBg"
+                                Background="{DynamicResource ScrollBarTrackFill}"
+                                CornerRadius="100"
+                                Height="4"
+                                VerticalAlignment="Center"
+                                Margin="4,0"/>
+                        <Track x:Name="PART_Track"
+                               Orientation="Horizontal"
+                               Minimum="{TemplateBinding Minimum}"
+                               Maximum="{TemplateBinding Maximum}"
+                               Value="{TemplateBinding Value, Mode=TwoWay}"
+                               ViewportSize="{TemplateBinding ViewportSize}"
+                               Margin="4,0">
+                            <Track.Thumb>
+                                <Thumb x:Name="thumb"/>
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="ScrollBar:horizontal /template/ Border#TrackBg">
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Height" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="Background" Duration="0:0:0.15"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ScrollBar:horizontal:pointerover /template/ Border#TrackBg">
+            <Setter Property="Height" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource ScrollBarTrackFillHover}"/>
+        </Style>
+
+        <!-- Thumb (shared) -->
+        <Style Selector="ScrollBar Thumb">
+            <Setter Property="Background" Value="{DynamicResource ScrollBarThumbFill}"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="100"/>
+                </ControlTemplate>
+            </Setter>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ScrollBar:vertical Thumb">
+            <Setter Property="Width" Value="4"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Width" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ScrollBar:vertical:pointerover Thumb">
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource ScrollBarThumbFillHover}"/>
+        </Style>
+        <Style Selector="ScrollBar:vertical Thumb:pressed">
+            <Setter Property="Width" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource ScrollBarThumbFillPressed}"/>
+        </Style>
+        <Style Selector="ScrollBar:horizontal Thumb">
+            <Setter Property="Height" Value="4"/>
+            <Setter Property="MinWidth" Value="30"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <DoubleTransition Property="Height" Duration="0:0:0.15" Easing="CubicEaseOut"/>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="ScrollBar:horizontal:pointerover Thumb">
+            <Setter Property="Height" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource ScrollBarThumbFillHover}"/>
+        </Style>
+        <Style Selector="ScrollBar:horizontal Thumb:pressed">
+            <Setter Property="Height" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource ScrollBarThumbFillPressed}"/>
+        </Style>
+
+    </Application.Styles>
+
+</Application>

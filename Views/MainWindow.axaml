@@ -1,0 +1,460 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Nami.ViewModels"
+        xmlns:controls="using:Nami.Views.Controls"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1060" d:DesignHeight="720"
+        x:Class="Nami.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Nami"
+        Width="900" Height="600"
+        MinWidth="760" MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Inter,Segoe UI,sans-serif"
+        TransparencyLevelHint="Mica, AcrylicBlur"
+        TransparencyBackgroundFallback="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="34"
+        WindowDecorations="BorderOnly"
+        Background="Transparent">
+
+    <Panel>
+        <!-- Caption buttons overlay -->
+        <controls:TitleBarButtons HorizontalAlignment="Right" VerticalAlignment="Top" ZIndex="999"/>
+
+        <!-- Root Grid: TitleBar row + content -->
+        <Grid RowDefinitions="34, *" PointerPressed="OnTitleBarPointerPressed">
+
+        <!-- ════════════════════════════════════════════
+             TITLE BAR (drag area)
+             ════════════════════════════════════════════ -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto, *, Auto"
+              Background="Transparent"
+              Margin="0,0,138,0">
+
+            <!-- Logo + Brand -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12"
+                        VerticalAlignment="Center" Margin="18,0,0,0">
+                <Border Width="26" Height="26" CornerRadius="7">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <GradientStop Color="#7C3AED" Offset="0"/>
+                            <GradientStop Color="#DB2777" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock Text="N" FontSize="14" FontWeight="ExtraBold" Foreground="White"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                               FontFamily="Inter,Segoe UI,sans-serif"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Text="NAMI" FontSize="13" FontWeight="ExtraBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               FontFamily="Inter,Segoe UI,sans-serif"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Right controls -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                        Spacing="10" Margin="0,0,10,0">
+                <!-- Active preset badge -->
+                <Border Background="{DynamicResource CardBackgroundFillSecondary}"
+                        CornerRadius="7" Padding="10,5"
+                        BorderBrush="{DynamicResource DividerStrokeColorDefault}"
+                        BorderThickness="1">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="Шаблон:" FontSize="10"
+                                   Foreground="{DynamicResource TextFillColorTertiary}"
+                                   VerticalAlignment="Center" FontFamily="Inter,Segoe UI,sans-serif"/>
+                        <TextBlock Text="{Binding SelectedPreset}" FontSize="11" FontWeight="Bold"
+                                   Foreground="#A78BFA" VerticalAlignment="Center"
+                                   FontFamily="Inter,Segoe UI,sans-serif"/>
+                    </StackPanel>
+                </Border>
+                <!-- Template editor button -->
+                <Button Content="✏️  Шаблоны BBCode" Command="{Binding OpenTemplateEditorCommand}"
+                        Classes="MiniButton"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Separator line under titlebar -->
+        <Border Grid.Row="0" VerticalAlignment="Bottom" Height="1"
+                Background="{DynamicResource DividerStrokeColorDefault}"/>
+
+        <!-- ════════════════════════════════════════════
+             MAIN CONTENT (Two columns)
+             ════════════════════════════════════════════ -->
+        <Grid Grid.Row="1" ColumnDefinitions="1.2*, 1*" Margin="14,12,14,14">
+
+            <!-- ══════════════════════════════════
+                 LEFT PANEL — Input form
+                 ══════════════════════════════════ -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource CardBackgroundFillDefault}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                    BorderThickness="1"
+                    CornerRadius="12" Margin="0,0,7,0">
+                <Grid RowDefinitions="Auto, 1, *">
+
+                    <!-- Import / Action section -->
+                    <StackPanel Grid.Row="0" Spacing="9" Margin="16,14,16,14">
+
+                        <!-- Shikimori row -->
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="ИМПОРТ ИЗ SHIKIMORI" Classes="FormLabel" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding ShikimoriImportUrl}"
+                                         PlaceholderText="https://shikimori.one/animes/..."/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Classes="PrimaryButton" VerticalAlignment="Bottom"
+                                    Height="39" Padding="16,0" HorizontalAlignment="Left"
+                                    MinWidth="80"
+                                    Content="{Binding ImportButtonText}"
+                                    Command="{Binding ImportFromShikimoriCommand}"
+                                    IsEnabled="{Binding CanImport}"/>
+                        </Grid>
+
+                        <!-- MediaInfo row -->
+                        <Grid ColumnDefinitions="*, Auto">
+                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                <TextBlock Text="ВИДЕОФАЙЛ (АВТОАНАЛИЗ ТЕХ. ДАННЫХ)" Classes="FormLabel" Margin="0,0,0,4"/>
+                                <TextBox Text="{Binding SelectedVideoFilePath}"
+                                         PlaceholderText="Выберите видеофайл..."
+                                         IsReadOnly="True"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Classes="PrimaryButton" VerticalAlignment="Bottom"
+                                    Height="39" Padding="16,0" HorizontalAlignment="Left"
+                                    MinWidth="80"
+                                    Content="{Binding SelectFileButtonText}"
+                                    Command="{Binding SelectAndAnalyzeFileCommand}"
+                                    IsEnabled="{Binding CanSelectFile}"/>
+                        </Grid>
+
+                        <!-- Conditional action buttons (video loaded) -->
+                        <Grid ColumnDefinitions="*" IsVisible="{Binding IsVideoLoaded}">
+                            <Button Grid.Column="0" Classes="PrimaryButton" Height="37" Margin="0,0,0,0"
+                                    Content="{Binding CreateScreenshotsButtonText}"
+                                    Command="{Binding CreateScreenshotsCommand}"
+                                    IsEnabled="{Binding CanCreateScreenshots}"/>
+                        </Grid>
+
+                    </StackPanel>
+
+                    <!-- Divider -->
+                    <Border Grid.Row="1" Height="1"
+                            Background="{DynamicResource DividerStrokeColorDefault}"/>
+
+                    <!-- Tab Control -->
+                    <TabControl Grid.Row="2" TabStripPlacement="Top">
+
+                        <!-- ── Tab 1: Основное ── -->
+                        <TabItem Header="📋  Основное">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Spacing="0" Margin="16,8,16,16">
+
+                                    <TextBlock Text="НАЗВАНИЕ (ЯПОНСКОЕ — КАНДЗИ)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding TitleJpKanji}"/>
+
+                                    <TextBlock Text="НАЗВАНИЕ (РОМАДЗИ)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding TitleJpRomaji}"/>
+
+                                    <TextBlock Text="НАЗВАНИЕ (АНГЛИЙСКОЕ)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding TitleEn}"/>
+
+                                    <TextBlock Text="НАЗВАНИЕ (РУССКОЕ)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding TitleRu}"/>
+
+                                    <TextBlock Text="НАЗВАНИЕ (ЛОКАЛИЗИРОВАННОЕ)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding TitleLocalized}"/>
+
+                                    <TextBlock Text="ССЫЛКА НА ПОСТЕР" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding PosterUrl}"/>
+
+                                    <Grid ColumnDefinitions="*, *" Margin="0,4,0,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="РЕЙТИНГ" Classes="FormLabel"/>
+                                            <ComboBox ItemsSource="{Binding AgeRatings}" SelectedItem="{Binding AgeRating}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="ОПИСАНИЕ РЕЙТИНГА" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding AgeDescription}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="ОПИСАНИЕ АНИМЕ" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding Description}" AcceptsReturn="True"
+                                             Height="108" TextWrapping="Wrap"/>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- ── Tab 2: Детали ── -->
+                        <TabItem Header="⚙️  Детали">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Spacing="0" Margin="16,8,16,16">
+
+                                    <TextBlock Text="ЖАНР" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding Genre}"/>
+
+                                    <TextBlock Text="ТИП ВЫПУСКА" Classes="FormLabel"/>
+                                    <ComboBox ItemsSource="{Binding ReleaseTypes}" SelectedItem="{Binding ReleaseType}"/>
+
+                                    <TextBlock Text="ПРОДОЛЖИТЕЛЬНОСТЬ" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding Duration}"/>
+
+                                    <TextBlock Text="ДАТА ВЫПУСКА" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding ReleaseDate}"/>
+
+                                    <Border Height="1" Background="{DynamicResource DividerStrokeColorDefault}" Margin="0,14,0,2"/>
+
+                                    <Grid ColumnDefinitions="*, *" Margin="0,4,0,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="АВТОР ОРИГИНАЛА" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding AuthorName}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="ССЫЛКА НА АВТОРА" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding AuthorUrl}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Grid ColumnDefinitions="*, *" Margin="0,4,0,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="РЕЖИССЕР" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding DirectorName}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="ССЫЛКА НА РЕЖИССЕРА" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding DirectorUrl}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Grid ColumnDefinitions="*, *" Margin="0,4,0,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="СТУДИЯ / ПРОИЗВОДСТВО" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding StudioName}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="ССЫЛКА НА СТУДИЮ" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding StudioUrl}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- ── Tab 3: Тех. данные ── -->
+                        <TabItem Header="🛠️  Тех.">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Spacing="0" Margin="16,8,16,16">
+
+                                    <Grid ColumnDefinitions="*, *" Margin="0,4,0,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="КАЧЕСТВО ВИДЕО" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding VideoQuality}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="АВТОР РИПА" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding ReleaseGroup}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="ВИДЕО-ИНФОРМАЦИЯ" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding VideoInfo}"/>
+
+                                    <TextBlock Text="АУДИО-ИНФОРМАЦИЯ" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding AudioInfo}"/>
+
+                                    <TextBlock Text="ЯЗЫК ОЗВУЧКИ" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding AudioLanguage}"/>
+
+                                    <CheckBox Content="Я автор рипа" IsChecked="{Binding IsAuthor}" Margin="0,10,0,0"/>
+
+                                    <Grid ColumnDefinitions="*, *" IsVisible="{Binding IsAuthor}" Margin="0,4,0,0">
+                                        <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                            <TextBlock Text="СУБТИТРЫ (ВНЕШНИЕ)" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding Subtitles}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                            <TextBlock Text="ПЕРЕВОД (ВНЕШНИЙ)" Classes="FormLabel"/>
+                                            <TextBox Text="{Binding Translation}"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Text="{Binding InternalSubtitlesLabel}" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding InternalSubtitles}" AcceptsReturn="True"
+                                             Height="58" TextWrapping="Wrap"/>
+
+                                    <TextBlock Text="{Binding InternalTranslationLabel}" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding InternalTranslation}"/>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- ── Tab 4: Ресурсы ── -->
+                        <TabItem Header="🔗  Ресурсы">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Spacing="0" Margin="16,8,16,16">
+
+                                    <TextBlock Text="ССЫЛКА SHIKIMORI" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding ShikimoriUrl}"/>
+
+                                    <TextBlock Text="ССЫЛКА WORLD-ART" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding WorldArtUrl}"/>
+
+                                    <TextBlock Text="ССЫЛКА ANIME NEWS NETWORK (ANN)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding AnnUrl}"/>
+
+                                    <TextBlock Text="ССЫЛКА MYANIMELIST (MAL)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding MalUrl}"/>
+
+                                    <TextBlock Text="ССЫЛКА SYOBOI" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding SyoboiUrl}"/>
+
+                                    <TextBlock Text="ССЫЛКА ANIDB" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding AnidbUrl}"/>
+
+                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,0,0,4">
+                                        <TextBlock Text="ССЫЛКА НА ТРЕЙЛЕР / PV (YOUTUBE)" Classes="FormLabel" VerticalAlignment="Center"/>
+                                        <CheckBox Content="Добавлять в пост" IsChecked="{Binding IncludeTrailer}" Margin="0,-4,0,0" FontSize="10"/>
+                                    </StackPanel>
+                                    <TextBox Text="{Binding TrailerUrl}"/>
+
+                                    <Border Height="1" Background="{DynamicResource DividerStrokeColorDefault}" Margin="0,14,0,2"/>
+
+                                    <TextBlock Text="ССЫЛКИ НА СКРИНШОТЫ (ОДНА ССЫЛКА НА СТРОКУ ИЛИ BBCODE)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding Screenshots}" AcceptsReturn="True"
+                                             Height="88" TextWrapping="NoWrap"
+                                             FontFamily="Consolas,Monospace" FontSize="11"/>
+
+                                    <TextBlock Text="СПИСОК ЭПИЗОДОВ" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding Episodes}" AcceptsReturn="True"
+                                             Height="88" TextWrapping="NoWrap"
+                                             FontFamily="Consolas,Monospace" FontSize="11"/>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- ── Tab 5: API ── -->
+                        <TabItem Header="🔑  API">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Spacing="8" Margin="16,12,16,16">
+
+                                    <!-- Info card -->
+                                    <Border CornerRadius="10" Padding="14,12" BorderThickness="1"
+                                            Background="{DynamicResource CardBackgroundFillSecondary}"
+                                            BorderBrush="{DynamicResource DividerStrokeColorDefault}">
+                                        <StackPanel Spacing="6">
+                                            <TextBlock Text="🔐  ImageBan API" FontSize="13" FontWeight="Bold"
+                                                       Foreground="#A78BFA" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                            <TextBlock Text="Укажите API-ключи для автоматической загрузки обложек и скриншотов. Получить можно в личном кабинете imageban.ru."
+                                                       FontSize="11" Foreground="{DynamicResource TextFillColorTertiary}"
+                                                       TextWrapping="Wrap" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <TextBlock Text="SECRET KEY (ДЛЯ ЗАГРУЗКИ В АККАУНТ И АЛЬБОМЫ)" Classes="FormLabel"/>
+                                    <TextBox Text="{Binding ImageBanSecretKey}"
+                                             PasswordChar="•"
+                                             PlaceholderText="Введите SECRET_KEY..."/>
+                                    <TextBlock Text="{Binding SecretKeyStatus}" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextFillColorTertiary}" Margin="2,1,0,0"
+                                               FontFamily="Inter,Segoe UI,sans-serif"/>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                    </TabControl>
+
+                </Grid>
+            </Border>
+
+            <!-- ══════════════════════════════════
+                 RIGHT PANEL — BBCode Output
+                 ══════════════════════════════════ -->
+            <Border Grid.Column="1"
+                    Background="{DynamicResource CardBackgroundFillDefault}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                    BorderThickness="1"
+                    CornerRadius="12" Margin="7,0,0,0">
+                <Grid RowDefinitions="Auto, *, Auto" Margin="16,14,16,14">
+
+                    <!-- Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*, Auto" Margin="0,0,0,12">
+                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="ГОТОВЫЙ BBCODE ДЛЯ ФОРУМА" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextFillColorTertiary}"
+                                       FontFamily="Inter,Segoe UI,sans-serif"/>
+                            <TextBlock Text="{Binding SelectedPreset, StringFormat='Шаблон: {0}'}"
+                                       FontSize="14" FontWeight="Bold" Foreground="#C4B5FD"
+                                       FontFamily="Inter,Segoe UI,sans-serif"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Code area -->
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource CardBackgroundFillSecondary}"
+                            BorderBrush="{DynamicResource DividerStrokeColorDefault}"
+                            BorderThickness="1" CornerRadius="9">
+                        <TextBox Text="{Binding BbCodeOutput}" IsReadOnly="True"
+                                 AcceptsReturn="True" TextWrapping="NoWrap"
+                                 FontFamily="Consolas,Monospace" FontSize="12"
+                                 Background="Transparent" BorderThickness="0"
+                                 Foreground="{DynamicResource TextFillColorTertiary}"
+                                 VerticalAlignment="Stretch"/>
+                    </Border>
+
+                    <!-- Action buttons -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*, *" Margin="0,12,0,0">
+                        <Button Grid.Column="0" Classes="PrimaryButton" Margin="0,0,5,0"
+                                Content="{Binding CopyText}" Command="{Binding CopyBbCodeCommand}"/>
+                        <Button Grid.Column="1" Classes="SecondaryButton" Margin="5,0,0,0"
+                                Content="{Binding CopyTopicTitleText}" Command="{Binding CopyTopicTitleCommand}"/>
+                    </Grid>
+
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Grid>
+
+        <!-- WELCOME OVERLAY -->
+        <Grid Background="#F2000000" IsVisible="{Binding IsWelcomeOverlayVisible}" ZIndex="1000">
+            <Border Background="#1C1C1E"
+                    BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                    BorderThickness="1"
+                    CornerRadius="12"
+                    Padding="32"
+                    MaxWidth="500"
+                    VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Добро пожаловать в Nami!" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                    
+                    <TextBlock Text="Для работы программы необходим Secret Key от ImageBan." 
+                               TextWrapping="Wrap" Foreground="#A0A0A0" HorizontalAlignment="Center" TextAlignment="Center"/>
+                    
+                    <TextBlock Text="Перейдите в свой профиль, сгенерируйте токен (вида 4O4KoRH...) и вставьте его ниже:" 
+                               TextWrapping="Wrap" Foreground="#A0A0A0" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,8"/>
+                    
+                    <Button Content="Открыть ImageBan Профиль" 
+                            Command="{Binding OpenImageBanProfileCommand}" 
+                            Classes="SecondaryButton" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+                    
+                    <TextBlock Text="Secret Key:" Classes="FormLabel"/>
+                    <TextBox Text="{Binding ImageBanSecretKey}" PasswordChar="•" PlaceholderText="Вставьте Secret Key сюда..."/>
+                    
+                    <Button Content="Сохранить и продолжить" 
+                            Command="{Binding SaveApiKeysCommand}" 
+                            Classes="PrimaryButton" HorizontalAlignment="Stretch" Margin="0,16,0,0" Height="40"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+    </Panel>
+</Window>

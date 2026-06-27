@@ -1,0 +1,187 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Nami.ViewModels"
+        xmlns:controls="using:Nami.Views.Controls"
+        x:Class="Nami.Views.TemplateEditorWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Редактор шаблонов — Nami"
+        Width="860" Height="580"
+        MinWidth="720" MinHeight="480"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Inter,Segoe UI,sans-serif"
+        TransparencyLevelHint="Mica, AcrylicBlur"
+        TransparencyBackgroundFallback="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="34"
+        WindowDecorations="BorderOnly"
+        Background="Transparent">
+
+    <Panel>
+        <!-- Caption buttons overlay -->
+        <controls:TitleBarButtons HorizontalAlignment="Right" VerticalAlignment="Top" ZIndex="999"/>
+
+        <Grid RowDefinitions="34, *" PointerPressed="OnTitleBarPointerPressed">
+
+        <!-- ════════════════════════════════════════════
+             TITLE BAR
+             ════════════════════════════════════════════ -->
+        <Grid Grid.Row="0" Background="Transparent" Margin="0,0,138,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="18,0,0,0">
+                <Border Width="24" Height="24" CornerRadius="6">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                            <GradientStop Color="#7C3AED" Offset="0"/>
+                            <GradientStop Color="#DB2777" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock Text="✏️" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <StackPanel VerticalAlignment="Center" Spacing="1">
+                    <TextBlock Text="РЕДАКТОР ШАБЛОНОВ" FontSize="12" FontWeight="ExtraBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               FontFamily="Inter,Segoe UI,sans-serif"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Separator -->
+        <Border Grid.Row="0" VerticalAlignment="Bottom" Height="1" Background="{DynamicResource DividerStrokeColorDefault}"/>
+
+        <!-- ════════════════════════════════════════════
+             MAIN CONTENT
+             ════════════════════════════════════════════ -->
+        <Grid Grid.Row="1" ColumnDefinitions="1.2*, 1*" Margin="14,12,14,14">
+
+            <!-- Left: Template Editor -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource CardBackgroundFillDefault}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                    BorderThickness="1"
+                    CornerRadius="12" Margin="0,0,7,0">
+                <Grid RowDefinitions="Auto, *, Auto" Margin="16">
+
+                    <!-- Preset management bar -->
+                    <Border Grid.Row="0"
+                            Background="{DynamicResource CardBackgroundFillSecondary}"
+                            BorderBrush="{DynamicResource DividerStrokeColorDefault}"
+                            BorderThickness="1"
+                            CornerRadius="10" Padding="12,10" Margin="0,0,0,12">
+                        <Grid ColumnDefinitions="Auto, *, Auto, Auto">
+                            <TextBlock Grid.Column="0" Text="ПРЕСЕТ:" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextFillColorTertiary}"
+                                       VerticalAlignment="Center" Margin="0,0,10,0"
+                                       FontFamily="Inter,Segoe UI,sans-serif"/>
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding Presets}"
+                                      SelectedItem="{Binding SelectedPreset}"
+                                      HorizontalAlignment="Stretch" Margin="0,0,10,0"/>
+                            <Button Grid.Column="2" Content="🗑  Удалить"
+                                    Command="{Binding DeletePresetCommand}"
+                                    IsEnabled="{Binding IsCustomPresetSelected}"
+                                    Classes="DangerButton" Margin="0,0,8,0"/>
+                            <Button Grid.Column="3" Content="💾  Сохранить как..."
+                                    Command="{Binding SaveAsPresetCommand}"
+                                    Classes="PrimaryButton"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Editor area -->
+                    <TextBox Grid.Row="1" Text="{Binding TemplateContent}" AcceptsReturn="True"
+                             TextWrapping="NoWrap" FontFamily="Consolas,Monospace" FontSize="12"
+                             PlaceholderText="Введите BBCode шаблон здесь..."
+                             IsReadOnly="{Binding IsDefaultPresetSelected}"
+                             VerticalAlignment="Stretch" Margin="0,0,0,12"/>
+
+                    <!-- Placeholder reference -->
+                    <Border Grid.Row="2"
+                            Background="{DynamicResource CardBackgroundFillSecondary}"
+                            BorderBrush="{DynamicResource DividerStrokeColorDefault}"
+                            BorderThickness="1"
+                            CornerRadius="10" Padding="14,12">
+                        <ScrollViewer Height="178" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="ДОСТУПНЫЕ ПЛЕЙСХОЛДЕРЫ" FontSize="10" FontWeight="Bold"
+                                           Foreground="{DynamicResource AccentPrimary}" Margin="0,0,0,6"
+                                           FontFamily="Inter,Segoe UI,sans-serif"/>
+
+                                <Border Background="#110B20" CornerRadius="6" Padding="10,7"
+                                        BorderBrush="#2D1B69" BorderThickness="1" Margin="0,0,0,6">
+                                    <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="{DynamicResource AccentPrimary}"
+                                               FontFamily="Inter,Segoe UI,sans-serif">
+                                        <Run FontWeight="Bold">Условный блок:</Run>
+                                        <Run> [IF ИмяПоля] ... [/IF] — скрыть текст, если поле пустое.</Run>
+                                    </TextBlock>
+                                </Border>
+
+                                <TextBlock Text="  {}{TitleJpKanji} — Японское название (Кандзи)"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{TitleJpRomaji} — Ромадзи название"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{TitleEn} — Английское название"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{TitleRu} — Русское название (доп.)"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{TitleLocalized} — Русское локализованное название"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{PosterUrl} — Прямая ссылка на постер"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{ReleaseType}, {}{Genre}, {}{ReleaseDate}, {}{Duration}, {}{AgeRating}"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{Director}, {}{Studio}, {}{Author}, {}{Description}"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{TrailerUrl} — Ссылка на PV / Трейлер"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{ShikimoriUrl}, {}{WorldArtUrl}, {}{AnnUrl}, {}{MalUrl}, {}{AnidbUrl}, {}{SyoboiUrl}"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{AudioLanguage}, {}{Subtitles}, {}{Translation}"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{InternalSubtitles}, {}{InternalTranslation}"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{VideoQuality}, {}{ReleaseGroup}, {}{VideoInfo}, {}{AudioInfo}"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{Screenshots} — Сырые скриншоты  |  {}{FormattedScreenshots} — Центрированные"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{Episodes} — Список эпизодов  |  {}{MediaInfo} — Сводка MediaInfo"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                                <TextBlock Text="  {}{IsAuthor} — Флаг 'Я автор'  |  {}{HasLinks} — Есть ли ссылки"
+                                           FontSize="10" Foreground="{DynamicResource TextFillColorSecondary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Border>
+
+                </Grid>
+            </Border>
+
+            <!-- Right: Preview -->
+            <Border Grid.Column="1"
+                    Background="{DynamicResource CardBackgroundFillDefault}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                    BorderThickness="1"
+                    CornerRadius="12" Margin="7,0,0,0">
+                <Grid RowDefinitions="Auto, *" Margin="16">
+                    <StackPanel Grid.Row="0" Spacing="2" Margin="0,0,0,12">
+                        <TextBlock Text="ПРЕДПРОСМОТР ВЫВОДА" FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextFillColorTertiary}" FontFamily="Inter,Segoe UI,sans-serif"/>
+                        <TextBlock Text="Результат в реальном времени" FontSize="13" FontWeight="Bold"
+                                   Foreground="#C4B5FD" FontFamily="Inter,Segoe UI,sans-serif"/>
+                    </StackPanel>
+
+                    <Border Grid.Row="1"
+                            Background="{DynamicResource CardBackgroundFillSecondary}"
+                            BorderBrush="{DynamicResource DividerStrokeColorDefault}"
+                            BorderThickness="1"
+                            CornerRadius="9">
+                        <TextBox Text="{Binding BbCodeOutput}" IsReadOnly="True"
+                                 AcceptsReturn="True" TextWrapping="NoWrap"
+                                 FontFamily="Consolas,Monospace" FontSize="11"
+                                 Background="Transparent" BorderThickness="0"
+                                 Foreground="{DynamicResource TextFillColorSecondary}"
+                                 VerticalAlignment="Stretch"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+        </Grid>
+    </Grid>
+    </Panel>
+
+</Window>

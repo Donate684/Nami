@@ -1,0 +1,84 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Nami.Views.Controls"
+        x:Class="Nami.Views.ScreenshotUploadWindow"
+        Title="Загрузка скриншотов — Nami"
+        Width="500" Height="360"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Inter,Segoe UI,sans-serif"
+        CanResize="False"
+        TransparencyLevelHint="Mica, AcrylicBlur"
+        TransparencyBackgroundFallback="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="34"
+        WindowDecorations="BorderOnly"
+        Background="Transparent">
+
+    <Panel>
+        <!-- Caption buttons overlay -->
+        <controls:TitleBarButtons HorizontalAlignment="Right" VerticalAlignment="Top" ZIndex="999"/>
+
+        <Grid RowDefinitions="34, *" PointerPressed="OnTitleBarPointerPressed">
+
+        <!-- Title Bar Area -->
+        <Grid Grid.Row="0" Background="Transparent" Margin="0,0,138,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="18,0,0,0">
+                <TextBlock Text="Загрузка скриншотов" FontSize="12" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                           FontFamily="Inter,Segoe UI,sans-serif"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Content -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource CardBackgroundFillDefault}"
+                BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="12" Margin="14,0,14,14">
+            <Grid RowDefinitions="Auto, *, Auto" Margin="22">
+
+                <!-- Status block -->
+                <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,16">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Width="26" Height="26" CornerRadius="13" Background="#0D2010">
+                            <TextBlock Text="✓" FontSize="14" FontWeight="Bold" Foreground="#34D399"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Name="CountTextBlock" Text="Отобрано 3 скриншота!" FontSize="15" FontWeight="Bold"
+                                   Foreground="#C4B5FD" VerticalAlignment="Center"
+                                   FontFamily="Inter,Segoe UI,sans-serif"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Загрузите их на фотохостинг и вставьте прямые ссылки сюда (по одной на строку)."
+                               FontSize="12" Foreground="{DynamicResource TextFillColorSecondary}" TextWrapping="Wrap"
+                               FontFamily="Inter,Segoe UI,sans-serif"/>
+
+                    <Button Name="OpenImageBanButton" Content="🌐  Открыть ImageBan.ru"
+                            Classes="DialogButton" Click="OnOpenImageBanClick"
+                            Margin="0,4,0,0" HorizontalAlignment="Left"/>
+                </StackPanel>
+
+                <!-- URL input -->
+                <StackPanel Grid.Row="1" Spacing="6">
+                    <TextBlock Text="ПРЯМЫЕ ССЫЛКИ НА СКРИНШОТЫ"
+                               FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextFillColorTertiary}"
+                               FontFamily="Inter,Segoe UI,sans-serif"/>
+                    <TextBox Name="UrlsTextBox" AcceptsReturn="True" TextWrapping="NoWrap"
+                             PlaceholderText="https://i6.imageban.ru/out/2026/05/30/1.webp&#x0a;https://i6.imageban.ru/out/2026/05/30/2.webp"
+                             FontSize="11" FontFamily="Consolas,Monospace"
+                             VerticalAlignment="Stretch"/>
+                </StackPanel>
+
+                <!-- Actions -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right"
+                            Spacing="10" Margin="0,16,0,0">
+                    <Button Content="Отмена" Classes="DialogButton" Click="OnCancelClick"/>
+                    <Button Content="Подтвердить" Classes="PrimaryDialogButton" Click="OnOkClick"/>
+                </StackPanel>
+
+            </Grid>
+        </Border>
+    </Grid>
+    </Panel>
+
+</Window>

@@ -1,0 +1,66 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Nami.Views.Controls"
+        x:Class="Nami.Views.DialogWindow"
+        Title="Nami"
+        Width="420" Height="224"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Inter,Segoe UI,sans-serif"
+        CanResize="False"
+        TransparencyLevelHint="Mica, AcrylicBlur"
+        TransparencyBackgroundFallback="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="34"
+        WindowDecorations="BorderOnly"
+        Background="Transparent">
+
+    <Panel>
+        <!-- Caption buttons overlay -->
+        <controls:TitleBarButtons HorizontalAlignment="Right" VerticalAlignment="Top" ZIndex="999"/>
+
+        <Grid RowDefinitions="34, *" PointerPressed="OnTitleBarPointerPressed">
+
+        <!-- Title Bar Area -->
+        <Grid Grid.Row="0" Background="Transparent" Margin="0,0,138,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="18,0,0,0">
+                <TextBlock Text="Nami" FontSize="12" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                           FontFamily="Inter,Segoe UI,sans-serif"/>
+            </StackPanel>
+        </Grid>
+        
+        <!-- Main Content -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource CardBackgroundFillDefault}"
+                BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="12" Margin="14,0,14,14">
+            <Grid RowDefinitions="*, Auto" Margin="22">
+
+                <!-- Message Content -->
+                <StackPanel Grid.Row="0" Spacing="10" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="⚠️" FontSize="16" VerticalAlignment="Center"/>
+                        <TextBlock Name="TitleTextBlock" Text="Утилита MediaInfo не найдена"
+                                   FontSize="15" FontWeight="Bold" Foreground="#C4B5FD"
+                                   VerticalAlignment="Center" FontFamily="Inter,Segoe UI,sans-serif"/>
+                    </StackPanel>
+                    <TextBlock Name="MessageTextBlock"
+                               Text="Хотите перейти на официальный сайт, чтобы скачать и установить MediaInfo?"
+                               FontSize="12" Foreground="{DynamicResource TextFillColorSecondary}" TextWrapping="Wrap"
+                               FontFamily="Inter,Segoe UI,sans-serif"/>
+                </StackPanel>
+
+                <!-- Actions -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right"
+                            Spacing="10" Margin="0,16,0,0">
+                    <Button Name="NoButton" Content="Отмена" Classes="DialogButton" Click="OnNoClick"/>
+                    <Button Name="YesButton" Content="Да, перейти" Classes="PrimaryDialogButton" Click="OnYesClick"/>
+                </StackPanel>
+
+            </Grid>
+        </Border>
+    </Grid>
+    </Panel>
+
+</Window>

@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Nami.Views.Controls"
+        x:Class="Nami.Views.AlbumNameDialogWindow"
+        Title="Название альбома — Nami"
+        Width="420" Height="249"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="Inter,Segoe UI,sans-serif"
+        CanResize="False"
+        TransparencyLevelHint="Mica, AcrylicBlur"
+        TransparencyBackgroundFallback="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="34"
+        WindowDecorations="BorderOnly"
+        Background="Transparent">
+
+    <Panel>
+        <!-- Caption buttons overlay -->
+        <controls:TitleBarButtons HorizontalAlignment="Right" VerticalAlignment="Top" ZIndex="999"/>
+
+        <Grid RowDefinitions="34, *" PointerPressed="OnTitleBarPointerPressed">
+
+        <!-- Title Bar Area -->
+        <Grid Grid.Row="0" Background="Transparent" Margin="0,0,138,0">
+            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="18,0,0,0">
+                <TextBlock Text="Название альбома" FontSize="12" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                           FontFamily="Inter,Segoe UI,sans-serif"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Content -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource CardBackgroundFillDefault}"
+                BorderBrush="{DynamicResource CardStrokeColorDefault}"
+                BorderThickness="1"
+                CornerRadius="12" Margin="14,0,14,14">
+            <Grid RowDefinitions="*, Auto" Margin="22">
+
+                <StackPanel Grid.Row="0" Spacing="10" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="🗂️" FontSize="15" VerticalAlignment="Center"/>
+                        <TextBlock Text="Название альбома" FontSize="15" FontWeight="Bold"
+                                   Foreground="#C4B5FD" VerticalAlignment="Center"
+                                   FontFamily="Inter,Segoe UI,sans-serif"/>
+                    </StackPanel>
+                    <TextBlock Text="Введите название альбома для скриншотов и постера. Оставьте пустым, если не хотите создавать альбом."
+                               FontSize="12" Foreground="{DynamicResource TextFillColorSecondary}" TextWrapping="Wrap"
+                               FontFamily="Inter,Segoe UI,sans-serif"/>
+                    <TextBox Name="AlbumNameTextBox" PlaceholderText="Например: Скриншоты 1 серия"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right"
+                            Spacing="10" Margin="0,16,0,0">
+                    <Button Content="Без альбома" Classes="DialogButton" Click="OnCancelClick"/>
+                    <Button Content="✓  Создать альбом" Classes="PrimaryDialogButton" Click="OnOkClick"/>
+                </StackPanel>
+
+            </Grid>
+        </Border>
+    </Grid>
+    </Panel>
+
+</Window>
