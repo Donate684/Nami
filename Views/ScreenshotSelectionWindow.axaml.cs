@@ -48,9 +48,12 @@ public partial class ScreenshotSelectionWindow : Window
         }
     }
 
-    public ScreenshotSelectionWindow(IEnumerable<byte[]> imageDatas)
+    private int _requiredCount = 4;
+
+    public ScreenshotSelectionWindow(IEnumerable<byte[]> imageDatas, int requiredCount = 4)
     {
         InitializeComponent();
+        _requiredCount = requiredCount;
         Closed += OnWindowClosed;
         
         foreach (var data in imageDatas)
@@ -80,9 +83,9 @@ public partial class ScreenshotSelectionWindow : Window
     private void OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         int count = ScreenshotsListBox.SelectedItems?.Count ?? 0;
-        SelectionStatusTextBlock.Text = $"Выбрано: {count} скриншотов";
-        ConfirmButton.Content = $"Подтвердить ({count}/4)";
-        ConfirmButton.IsEnabled = (count == 4);
+        SelectionStatusTextBlock.Text = $"Выбрано: {count} скриншотов из {_requiredCount}";
+        ConfirmButton.Content = $"Подтвердить ({count}/{_requiredCount})";
+        ConfirmButton.IsEnabled = (count == _requiredCount);
     }
 
     private void OnConfirmClick(object? sender, RoutedEventArgs e)
@@ -92,7 +95,7 @@ public partial class ScreenshotSelectionWindow : Window
             .Select(item => item.ImageData)
             .ToList();
 
-        if (selected != null && selected.Count == 4)
+        if (selected != null && selected.Count == _requiredCount)
         {
             Close(selected);
         }

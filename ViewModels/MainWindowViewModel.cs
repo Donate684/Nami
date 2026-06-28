@@ -103,6 +103,14 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty] private string _screenshots = string.Empty;
     [ObservableProperty] private string _episodes = string.Empty;
 
+    // Screenshots Layout
+    [ObservableProperty] private int _screenshotsLayoutIndex = 0;
+    partial void OnScreenshotsLayoutIndexChanged(int value)
+    {
+        UpdateOutputs();
+        SaveSettings();
+    }
+
     // ImageBan Album Tracking
     [ObservableProperty] private string _currentAlbumId = string.Empty;
 
@@ -420,13 +428,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
         if (formatted.Count == 0) return input.Trim();
 
-        var rows = new List<string>();
-        for (int i = 0; i < formatted.Count; i += 4)
+        int itemsPerRow = 4;
+        if (ScreenshotsLayoutIndex == 1 || ScreenshotsLayoutIndex == 3) // 5 or 10 screenshots
         {
-            var rowItems = formatted.GetRange(i, Math.Min(4, formatted.Count - i));
+            itemsPerRow = 5;
+        }
+        
+        var rows = new List<string>();
+        for (int i = 0; i < formatted.Count; i += itemsPerRow)
+        {
+            var rowItems = formatted.GetRange(i, Math.Min(itemsPerRow, formatted.Count - i));
             if (rowItems.Count == 4)
             {
                 rows.Add($"{rowItems[0]} {rowItems[1]}   {rowItems[2]} {rowItems[3]}");
+            }
+            else if (rowItems.Count == 5)
+            {
+                rows.Add($"{rowItems[0]} {rowItems[1]} {rowItems[2]} {rowItems[3]} {rowItems[4]}");
             }
             else
             {
@@ -434,7 +452,7 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
         
-        return string.Join("\n\n", rows);
+        return string.Join("\n", rows);
     }
 
     [RelayCommand]
@@ -737,12 +755,13 @@ public partial class MainWindowViewModel : ViewModelBase
             int duration = GetDurationInSeconds();
             double start = duration * 0.1;
             double end = duration * 0.9;
-            double interval = (end - start) / 9.0;
+            int previewCount = (ScreenshotsLayoutIndex == 2 || ScreenshotsLayoutIndex == 3) ? 20 : 10;
+            double interval = (end - start) / (previewCount > 1 ? previewCount - 1 : 9.0);
             var imagesData = new List<byte[]>();
 
             await Task.Run(() =>
             {
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < previewCount; i++)
                 {
                     double timeSec = start + i * interval;
                     string timeStr = timeSec.ToString("F3", System.Globalization.CultureInfo.InvariantCulture);
@@ -768,14 +787,22 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             });
 
+            int requiredCount = ScreenshotsLayoutIndex switch
+            {
+                1 => 5,
+                2 => 8,
+                3 => 10,
+                _ => 4
+            };
+
             List<byte[]>? selectedData = null;
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopSelection && desktopSelection.MainWindow != null)
             {
-                var selectionWindow = new Nami.Views.ScreenshotSelectionWindow(imagesData);
+                var selectionWindow = new Nami.Views.ScreenshotSelectionWindow(imagesData, requiredCount);
                 selectedData = await selectionWindow.ShowDialog<List<byte[]>?>(desktopSelection.MainWindow);
             }
 
-            if (selectedData == null || selectedData.Count != 4)
+            if (selectedData == null || selectedData.Count != requiredCount)
             {
                 CreateScreenshotsButtonText = "Отменено ⚠️";
                 await Task.Delay(2000);
@@ -787,7 +814,7 @@ public partial class MainWindowViewModel : ViewModelBase
             string outFolder = Path.Combine(baseDir, "Temp");
             Directory.CreateDirectory(outFolder);
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < requiredCount; i++)
             {
                 File.WriteAllBytes(Path.Combine(outFolder, $"selected_0{i + 1}.png"), selectedData[i]);
             }
@@ -814,9 +841,9 @@ public partial class MainWindowViewModel : ViewModelBase
                 var uploadedIds = new List<string>();
                 bool anyFailed = false;
 
-                for (int i = 0; i < 4; i++)
+                for (int i = 0; i < requiredCount; i++)
                 {
-                    CreateScreenshotsButtonText = $"Загрузка скриншота {i + 1}/4... ⏳";
+                    CreateScreenshotsButtonText = $"Загрузка скриншота {i + 1}/{requiredCount}... ⏳";
                     var (directUrl, imgId) = await UploadImageToImageBanAsync(selectedData[i], $"selected_0{i + 1}.png", true);
                     if (!string.IsNullOrEmpty(directUrl))
                     {
@@ -1282,6 +1309,13 @@ public partial class MainWindowViewModel : ViewModelBase
                         IncludeTrailer = parsedTrailer;
                     }
                 }
+                if (lines.Length > 7)
+                {
+                    if (int.TryParse(lines[7].Trim(), out int parsedIndex))
+                    {
+                        ScreenshotsLayoutIndex = parsedIndex;
+                    }
+                }
             }
         }
         catch
@@ -1295,7 +1329,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             Directory.CreateDirectory(SettingsDirPath);
-            File.WriteAllLines(SettingsFilePath, new[] { Translation, Subtitles, string.Empty, ImageBanSecretKey, IsAuthor.ToString(), SelectedPreset, IncludeTrailer.ToString() });
+            File.WriteAllLines(SettingsFilePath, new[] { Translation, Subtitles, string.Empty, ImageBanSecretKey, IsAuthor.ToString(), SelectedPreset, IncludeTrailer.ToString(), ScreenshotsLayoutIndex.ToString() });
         }
         catch
         {

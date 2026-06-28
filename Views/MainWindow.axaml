@@ -326,7 +326,15 @@
 
                                     <Border Height="1" Background="{DynamicResource DividerStrokeColorDefault}" Margin="0,14,0,2"/>
 
-                                    <TextBlock Text="ССЫЛКИ НА СКРИНШОТЫ (ОДНА ССЫЛКА НА СТРОКУ ИЛИ BBCODE)" Classes="FormLabel"/>
+                                    <Grid Margin="0,0,0,4">
+                                        <TextBlock Text="ССЫЛКИ НА СКРИНШОТЫ (ОДНА ССЫЛКА НА СТРОКУ ИЛИ BBCODE)" Classes="FormLabel" VerticalAlignment="Center"/>
+                                        <ComboBox SelectedIndex="{Binding ScreenshotsLayoutIndex}" HorizontalAlignment="Right" Width="200" FontSize="11">
+                                            <ComboBoxItem>4 скриншота</ComboBoxItem>
+                                            <ComboBoxItem>5 скриншотов</ComboBoxItem>
+                                            <ComboBoxItem>8 скриншотов (2 ряда)</ComboBoxItem>
+                                            <ComboBoxItem>10 скриншотов (2 ряда)</ComboBoxItem>
+                                        </ComboBox>
+                                    </Grid>
                                     <TextBox Text="{Binding Screenshots}" AcceptsReturn="True"
                                              Height="88" TextWrapping="NoWrap"
                                              FontFamily="Consolas,Monospace" FontSize="11"/>
