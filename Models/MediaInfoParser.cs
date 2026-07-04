@@ -402,6 +402,8 @@ public static class MediaInfoParser
         if (lang.Contains("french") || lang == "fr") return "Французский";
         if (lang.Contains("spanish") || lang == "es") return "Испанский";
         if (lang.Contains("portuguese") || lang == "pt") return "Португальский";
+        if (lang.Contains("polish") || lang.Contains("pol") || lang == "pl") return "Польский";
+        if (lang.Contains("turkish") || lang.Contains("tur") || lang == "tr") return "Турецкий";
         if (lang.Length > 0) return char.ToUpper(lang[0]) + lang.Substring(1);
         return lang;
     }
@@ -429,6 +431,8 @@ public static class MediaInfoParser
         if (lang.Contains("thai") || lang == "th") return "тайские";
         if (lang.Contains("vietnamese") || lang == "vi") return "вьетнамские";
         if (lang.Contains("japanese") || lang.Contains("jpn") || lang == "ja" || lang == "jp") return "японские";
+        if (lang.Contains("polish") || lang.Contains("pol") || lang == "pl") return "польские";
+        if (lang.Contains("turkish") || lang.Contains("tur") || lang == "tr") return "турецкие";
         return lang;
     }
 }
