@@ -769,7 +769,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     var startInfo = new ProcessStartInfo
                     {
                         FileName = ffmpegPath,
-                        Arguments = $"-y -ss {timeStr} -i \"{SelectedVideoFilePath}\" -vframes 1 -f image2pipe -c:v png -",
+                        Arguments = $"-y -ss {timeStr} -i \"{SelectedVideoFilePath}\" -vframes 1 -f image2pipe -pix_fmt rgb24 -c:v png -",
                         UseShellExecute = false,
                         CreateNoWindow = true,
                         RedirectStandardOutput = true
