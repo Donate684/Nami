@@ -146,6 +146,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(IsVideoLoaded))]
     private string _selectedVideoFilePath = string.Empty;
     [ObservableProperty] private string _createScreenshotsButtonText = "Создать скриншоты...";
+    [ObservableProperty] private string _analyzeBitrateButtonText = "Анализ битрейта 📊";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanImport))]
@@ -165,7 +166,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsVideoLoaded => !string.IsNullOrEmpty(SelectedVideoFilePath);
     public bool CanImport => !IsImportDone;
-    public bool CanSelectFile => IsImportDone && !IsFileSelectionDone;
+    public bool CanSelectFile => true;
     public bool CanCreateScreenshots => IsFileSelectionDone && !IsScreenshotsDone;
 
     public ObservableCollection<string> ReleaseTypes { get; } = new()
@@ -647,6 +648,47 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    [RelayCommand]
+    private async Task OpenBitrateGraphAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedVideoFilePath) || !File.Exists(SelectedVideoFilePath))
+        {
+            return;
+        }
+
+        string? ffmpegPath = await GetFfmpegPathAsync(status => AnalyzeBitrateButtonText = status);
+        if (ffmpegPath == null)
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow != null)
+            {
+                var dialog = new Nami.Views.DialogWindow(
+                    "FFmpeg не найден", 
+                    "Для анализа битрейта требуется установленный FFmpeg.\n\nХотите перейти на официальный сайт для скачивания?"
+                );
+                var result = await dialog.ShowDialog<bool>(desktop.MainWindow);
+                if (result)
+                {
+                    try { Process.Start(new ProcessStartInfo { FileName = "https://ffmpeg.org/download.html", UseShellExecute = true }); } catch { }
+                }
+            }
+            AnalyzeBitrateButtonText = "Анализ битрейта 📊";
+            return;
+        }
+
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopApp && desktopApp.MainWindow != null)
+        {
+            var graphViewModel = new BitrateGraphViewModel();
+            var window = new Nami.Views.BitrateGraphWindow
+            {
+                DataContext = graphViewModel
+            };
+            
+            window.Show(desktopApp.MainWindow);
+            await graphViewModel.StartAnalysisAsync(SelectedVideoFilePath);
+            AnalyzeBitrateButtonText = "Анализ битрейта 📊";
+        }
+    }
+
     private async Task<string?> GetFfmpegPathAsync(Action<string>? statusCallback = null)
     {
         string localPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ffmpeg.exe");
@@ -862,7 +904,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     if (!string.IsNullOrEmpty(coverImgId))
                     {
                         uploadedIds.Add(coverImgId);
-                        PosterUrl = coverDirectUrl;
+                        PosterUrl = coverDirectUrl ?? string.Empty;
                     }
                 }
 
