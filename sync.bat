@@ -3,7 +3,7 @@ setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 
 echo =======================================
-echo      Mikan Sync (GitHub)
+echo      Nami Sync (GitHub)
 echo =======================================
 echo.
 
