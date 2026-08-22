@@ -1,22 +1,47 @@
 @echo off
-echo ==============================================
-echo       Syncing Nami with GitHub
-echo       https://github.com/Donate684/Nami
-echo ==============================================
+setlocal EnableDelayedExpansion
+cd /d "%~dp0"
+
+echo =======================================
+echo      Mikan Sync (GitHub)
+echo =======================================
 echo.
 
-echo Adding changed files...
+:: Check if git is initialized
+if not exist ".git" (
+    echo [ERROR] Git not initialized in this folder.
+    pause
+    exit /b
+)
+
+:: Show current status
+echo --- Current Status ---
+git status -s
+echo.
+
+:: Ask for commit message
+set /p msg="Enter commit message (default: Update): "
+if "!msg!"=="" set msg=Update
+
+:: Stage and commit
+echo.
+echo Staging files...
 git add .
-echo.
+echo Committing changes...
+git commit -m "!msg!"
 
-git commit -m "Update"
+:: Push
 echo.
-
-echo Pushing changes to server...
+echo Pushing to GitHub (origin master)...
 git push origin master
-echo.
 
-echo ==============================================
-echo Sync completed!
-echo ==============================================
+if %ERRORLEVEL% neq 0 (
+    echo.
+    echo [ERROR] Push failed. Check your internet connection or credentials.
+) else (
+    echo.
+    echo [SUCCESS] Sync complete!
+)
+
+echo.
 pause
