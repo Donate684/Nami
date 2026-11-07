@@ -538,7 +538,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(MediaInfo)) return;
 
-        var result = MediaInfoParser.Parse(MediaInfo);
+        var result = MediaInfoParser.Parse(MediaInfo, SelectedVideoFilePath);
 
         if (!string.IsNullOrEmpty(result.VideoInfo))
             VideoInfo = result.VideoInfo;

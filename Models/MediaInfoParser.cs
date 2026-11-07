@@ -35,11 +35,18 @@ public static class MediaInfoParser
         public string Title { get; set; } = "";
     }
 
-    public static MediaInfoResult Parse(string rawText)
+    public static MediaInfoResult Parse(string rawText, string? optionalFilePath = null)
     {
         var result = new MediaInfoResult();
         if (string.IsNullOrWhiteSpace(rawText))
             return result;
+
+        string filename = "";
+        if (!string.IsNullOrWhiteSpace(optionalFilePath))
+        {
+            try { filename = Path.GetFileName(optionalFilePath); } catch {}
+        }
+        string movieTitle = "";
 
         var lines = rawText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
         string currentSection = "";
@@ -112,50 +119,22 @@ public static class MediaInfoParser
 
             if (currentSection == "general")
             {
-                if (key.Equals("Complete name", StringComparison.OrdinalIgnoreCase))
+                if (key.Equals("Complete name", StringComparison.OrdinalIgnoreCase) ||
+                    key.Equals("File name", StringComparison.OrdinalIgnoreCase) ||
+                    key.Equals("FileName", StringComparison.OrdinalIgnoreCase))
                 {
                     try
                     {
-                        string filename = Path.GetFileName(val);
-                        // Try parsing release group, e.g. [SubsPlease] or [Erai-raws]
-                        var match = Regex.Match(filename, @"^\[([^\]]+)\]");
-                        if (match.Success)
-                        {
-                            result.ReleaseGroup = match.Groups[1].Value;
-                        }
-                        else
-                        {
-                            // Try parsing suffix like "-VARYG.mkv"
-                            string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
-                            int lastHyphen = nameWithoutExt.LastIndexOf('-');
-                            if (lastHyphen > 0 && lastHyphen < nameWithoutExt.Length - 1)
-                            {
-                                string group = nameWithoutExt.Substring(lastHyphen + 1).Trim();
-                                if (!group.Equals("mkv", StringComparison.OrdinalIgnoreCase) && 
-                                    !group.Equals("mp4", StringComparison.OrdinalIgnoreCase) &&
-                                    !group.Equals("avi", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    result.ReleaseGroup = group;
-                                }
-                            }
-                        }
-
-                        // Guess quality
-                        if (filename.Contains("BDRip", StringComparison.OrdinalIgnoreCase) || filename.Contains("BD", StringComparison.OrdinalIgnoreCase) || filename.Contains("BluRay", StringComparison.OrdinalIgnoreCase))
-                            result.VideoQuality = "BDRip";
-                        else if (filename.Contains("WEB-DL", StringComparison.OrdinalIgnoreCase) || 
-                                 filename.Contains("WEBRip", StringComparison.OrdinalIgnoreCase) ||
-                                 filename.Contains("WEB", StringComparison.OrdinalIgnoreCase))
-                            result.VideoQuality = "WEBRip";
-                        else if (filename.Contains("HDTV", StringComparison.OrdinalIgnoreCase))
-                            result.VideoQuality = "HDTV";
-                        else
-                            result.VideoQuality = "WEBRip"; // Default guess
+                        string parsedName = Path.GetFileName(val);
+                        if (!string.IsNullOrEmpty(parsedName))
+                            filename = parsedName;
                     }
-                    catch
-                    {
-                        result.VideoQuality = "WEBRip";
-                    }
+                    catch {}
+                }
+                else if (key.Equals("Movie name", StringComparison.OrdinalIgnoreCase) ||
+                         key.Equals("Title", StringComparison.OrdinalIgnoreCase))
+                {
+                    movieTitle = val;
                 }
             }
             else if (currentSection == "video")
@@ -209,6 +188,54 @@ public static class MediaInfoParser
                 else if (key.Equals("Title", StringComparison.OrdinalIgnoreCase) && string.IsNullOrEmpty(currentText.Title))
                     currentText.Title = val;
             }
+        }
+
+        // Parse ReleaseGroup and VideoQuality from filename
+        if (!string.IsNullOrEmpty(filename))
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(result.ReleaseGroup))
+                {
+                    // Try parsing release group, e.g. [SubsPlease] or [Erai-raws]
+                    var match = Regex.Match(filename, @"^\[([^\]]+)\]");
+                    if (match.Success)
+                    {
+                        result.ReleaseGroup = match.Groups[1].Value;
+                    }
+                    else
+                    {
+                        // Try parsing suffix like "-VARYG.mkv"
+                        string nameWithoutExt = Path.GetFileNameWithoutExtension(filename);
+                        int lastHyphen = nameWithoutExt.LastIndexOf('-');
+                        if (lastHyphen > 0 && lastHyphen < nameWithoutExt.Length - 1)
+                        {
+                            string group = nameWithoutExt.Substring(lastHyphen + 1).Trim();
+                            if (!group.Equals("mkv", StringComparison.OrdinalIgnoreCase) && 
+                                !group.Equals("mp4", StringComparison.OrdinalIgnoreCase) &&
+                                !group.Equals("avi", StringComparison.OrdinalIgnoreCase))
+                            {
+                                result.ReleaseGroup = group;
+                            }
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(result.VideoQuality))
+                {
+                    if (filename.Contains("BDRip", StringComparison.OrdinalIgnoreCase) || filename.Contains("BD", StringComparison.OrdinalIgnoreCase) || filename.Contains("BluRay", StringComparison.OrdinalIgnoreCase))
+                        result.VideoQuality = "BDRip";
+                    else if (filename.Contains("WEB-DL", StringComparison.OrdinalIgnoreCase) || 
+                             filename.Contains("WEBRip", StringComparison.OrdinalIgnoreCase) ||
+                             filename.Contains("WEB", StringComparison.OrdinalIgnoreCase))
+                        result.VideoQuality = "WEBRip";
+                    else if (filename.Contains("HDTV", StringComparison.OrdinalIgnoreCase))
+                        result.VideoQuality = "HDTV";
+                    else
+                        result.VideoQuality = "WEBRip"; // Default guess
+                }
+            }
+            catch {}
         }
 
         // Format Video
@@ -326,7 +353,20 @@ public static class MediaInfoParser
                 if (match.Success)
                 {
                     string studio = match.Groups[1].Value.Trim();
-                    if (!translators.Contains(studio)) translators.Add(studio);
+                    if (!IsNonTranslatorSubtitleType(studio))
+                    {
+                        string canonical = DetectTranslator(studio);
+                        string finalStudio = !string.IsNullOrEmpty(canonical) ? canonical : studio;
+                        if (!translators.Contains(finalStudio)) translators.Add(finalStudio);
+                    }
+                    else
+                    {
+                        string translator = DetectTranslator(t.Title);
+                        if (!string.IsNullOrEmpty(translator) && !translators.Contains(translator))
+                        {
+                            translators.Add(translator);
+                        }
+                    }
                 }
                 else 
                 {
@@ -362,6 +402,25 @@ public static class MediaInfoParser
             var first = formattedSubtitles[0];
             formattedSubtitles[0] = char.ToUpper(first[0]) + first.Substring(1);
         }
+
+        // Fallback translator detection from filename and title
+        if (translators.Count == 0 && !string.IsNullOrEmpty(filename))
+        {
+            string fileTranslator = DetectTranslator(filename);
+            if (!string.IsNullOrEmpty(fileTranslator) && !translators.Contains(fileTranslator))
+            {
+                translators.Add(fileTranslator);
+            }
+        }
+
+        if (translators.Count == 0 && !string.IsNullOrEmpty(movieTitle))
+        {
+            string titleTranslator = DetectTranslator(movieTitle);
+            if (!string.IsNullOrEmpty(titleTranslator) && !translators.Contains(titleTranslator))
+            {
+                translators.Add(titleTranslator);
+            }
+        }
         
         result.InternalSubtitles = string.Join(", ", formattedSubtitles);
         result.InternalTranslation = string.Join(", ", translators);
@@ -383,56 +442,466 @@ public static class MediaInfoParser
         if (Regex.IsMatch(text, @"\b(Bilibili|BILI)\b", RegexOptions.IgnoreCase)) return "Bilibili";
         if (Regex.IsMatch(text, @"\b(Crunchyroll|CRUNCHY|CR|SubsPlease|Erai-raws)\b", RegexOptions.IgnoreCase)) return "Crunchyroll";
         if (Regex.IsMatch(text, @"\b(Netflix|NF)\b", RegexOptions.IgnoreCase)) return "Netflix";
-        if (Regex.IsMatch(text, @"\b(Amazon|AMZN)\b", RegexOptions.IgnoreCase)) return "Amazon";
-        if (Regex.IsMatch(text, @"\b(Disney|DSNP)\b", RegexOptions.IgnoreCase)) return "Disney+";
+        if (Regex.IsMatch(text, @"\b(Amazon|AMZN|PrimeVideo)\b|Prime\s*Video", RegexOptions.IgnoreCase)) return "Amazon";
+        if (Regex.IsMatch(text, @"(?:\b(DisneyPlus|Disney|DSNP)\b|Disney\+)", RegexOptions.IgnoreCase)) return "Disney+";
+        if (Regex.IsMatch(text, @"(?:\b(AppleTV|ATVP)\b|Apple\s*TV\+?)", RegexOptions.IgnoreCase)) return "Apple TV";
+        if (Regex.IsMatch(text, @"\b(Wakanim|WKN)\b", RegexOptions.IgnoreCase)) return "Wakanim";
 
         return string.Empty;
     }
 
+    private static bool IsNonTranslatorSubtitleType(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return true;
+        string t = text.Trim().ToLowerInvariant();
+        return t == "полные" || t == "полный" || t == "надписи" || t == "форсированные" || t == "форсированный" || t == "форс" ||
+               t == "full" || t == "forced" || t == "signs" || t == "signs & songs" || t == "songs & signs" ||
+               t == "signs and songs" || t == "songs and signs" || t == "songs" || t == "titles" ||
+               t == "sdh" || t == "cc" || t == "default" || t == "dialogue" || t == "dialog" ||
+               t == "subs" || t == "subtitles" || t == "субтитры" ||
+               t == "srt" || t == "ass" || t == "ssa" || t == "pgs" || t == "vobsub";
+    }
+
+    private static bool TryTranslateLanguage(string langRaw, out string subtitleLang, out string audioLang)
+    {
+        subtitleLang = string.Empty;
+        audioLang = string.Empty;
+        if (string.IsNullOrWhiteSpace(langRaw)) return false;
+
+        string l = langRaw.Trim().ToLowerInvariant();
+
+        // 1. Regional / Compound variants
+        if (l.Contains("brazil") || l.Contains("(br)") || l == "pt-br")
+        {
+            subtitleLang = "португальские (BR)";
+            audioLang = "Португальский (BR)";
+            return true;
+        }
+        if (l.Contains("latin america") || l.Contains("(la)") || l == "es-419" || l == "es-la")
+        {
+            subtitleLang = "испанские (LA)";
+            audioLang = "Испанский (LA)";
+            return true;
+        }
+        if (l.Contains("chinese (traditional)") || l.Contains("традицион") || l == "zh-hant" || l == "zh-tw" || l == "zh-hk")
+        {
+            subtitleLang = "китайские (традиционные)";
+            audioLang = "Китайский (традиционный)";
+            return true;
+        }
+        if (l.Contains("chinese (simplified)") || l.Contains("упрощен") || l == "zh-hans" || l == "zh-cn" || l == "zh-sg")
+        {
+            subtitleLang = "китайские (упрощенные)";
+            audioLang = "Китайский (упрощенный)";
+            return true;
+        }
+        if (l.Contains("nynorsk") || l.Contains("нюнорск") || l == "nn" || l == "nno")
+        {
+            subtitleLang = "норвежские (нюнорск)";
+            audioLang = "Норвежский (нюнорск)";
+            return true;
+        }
+
+        // 2. Base languages with prefixes or collision risks
+        if (l.Contains("belarus") || l.Contains("белорус") || l == "be" || l == "bel")
+        {
+            subtitleLang = "белорусские";
+            audioLang = "Белорусский";
+            return true;
+        }
+        if (l.Contains("russian") || l.Contains("русск") || l == "ru" || l == "rus")
+        {
+            subtitleLang = "русские";
+            audioLang = "Русский";
+            return true;
+        }
+        if (l.Contains("bengali") || l.Contains("bangla") || l.Contains("бенгальск") || l == "bn" || l == "ben")
+        {
+            subtitleLang = "бенгальские";
+            audioLang = "Бенгальский";
+            return true;
+        }
+        if (l.Contains("english") || l.Contains("английск") || l == "en" || l == "eng")
+        {
+            subtitleLang = "английские";
+            audioLang = "Английский";
+            return true;
+        }
+        if (l.Contains("hindi") || l.Contains("хинди") || l.Contains("индийск") || l == "hi" || l == "hin")
+        {
+            subtitleLang = "хинди";
+            audioLang = "Хинди";
+            return true;
+        }
+        if (l.Contains("indonesian") || l.Contains("индонезийск") || l == "id" || l == "ind")
+        {
+            subtitleLang = "индонезийские";
+            audioLang = "Индонезийский";
+            return true;
+        }
+        if (l.Contains("norwegian") || l.Contains("норвежск") || l.Contains("bokmal") || l.Contains("bokmål") || l.Contains("букмол") || l == "no" || l == "nob" || l == "nor" || l == "nb")
+        {
+            subtitleLang = "норвежские";
+            audioLang = "Норвежский";
+            return true;
+        }
+        if (l.Contains("portuguese") || l.Contains("португальск") || l == "pt" || l == "por" || l == "pt-pt")
+        {
+            subtitleLang = "португальские";
+            audioLang = "Португальский";
+            return true;
+        }
+        if (l.Contains("spanish") || l.Contains("испанск") || l == "es" || l == "spa" || l == "es-es")
+        {
+            subtitleLang = "испанские";
+            audioLang = "Испанский";
+            return true;
+        }
+        if (l.Contains("chinese") || l.Contains("китайск") || l == "zh" || l == "chi" || l == "zho")
+        {
+            subtitleLang = "китайские";
+            audioLang = "Китайский";
+            return true;
+        }
+        if (l.Contains("japanese") || l.Contains("японск") || l == "ja" || l == "jp" || l == "jpn")
+        {
+            subtitleLang = "японские";
+            audioLang = "Японский";
+            return true;
+        }
+        if (l.Contains("korean") || l.Contains("корейск") || l == "ko" || l == "kor")
+        {
+            subtitleLang = "корейские";
+            audioLang = "Корейский";
+            return true;
+        }
+        if (l.Contains("german") || l.Contains("немецк") || l == "de" || l == "ger" || l == "deu")
+        {
+            subtitleLang = "немецкие";
+            audioLang = "Немецкий";
+            return true;
+        }
+        if (l.Contains("french") || l.Contains("французск") || l == "fr" || l == "fre" || l == "fra")
+        {
+            subtitleLang = "французские";
+            audioLang = "Французский";
+            return true;
+        }
+        if (l.Contains("italian") || l.Contains("итальянск") || l == "it" || l == "ita")
+        {
+            subtitleLang = "итальянские";
+            audioLang = "Итальянский";
+            return true;
+        }
+        if (l.Contains("arabic") || l.Contains("арабск") || l == "ar" || l == "ara")
+        {
+            subtitleLang = "арабские";
+            audioLang = "Арабский";
+            return true;
+        }
+        if (l.Contains("czech") || l.Contains("чешск") || l == "cs" || l == "cze" || l == "ces")
+        {
+            subtitleLang = "чешские";
+            audioLang = "Чешский";
+            return true;
+        }
+        if (l.Contains("danish") || l.Contains("датск") || l == "da" || l == "dan")
+        {
+            subtitleLang = "датские";
+            audioLang = "Датский";
+            return true;
+        }
+        if (l.Contains("dutch") || l.Contains("flemish") || l.Contains("нидерландск") || l.Contains("голландск") || l == "nl" || l == "nld" || l == "dut" || l == "fle")
+        {
+            subtitleLang = "нидерландские";
+            audioLang = "Нидерландский";
+            return true;
+        }
+        if (l.Contains("finnish") || l.Contains("финск") || l == "fi" || l == "fin")
+        {
+            subtitleLang = "финские";
+            audioLang = "Финский";
+            return true;
+        }
+        if (l.Contains("greek") || l.Contains("греческ") || l == "el" || l == "ell" || l == "gre")
+        {
+            subtitleLang = "греческие";
+            audioLang = "Греческий";
+            return true;
+        }
+        if (l.Contains("hebrew") || l.Contains("иврит") || l.Contains("еврейск") || l == "he" || l == "heb" || l == "iw")
+        {
+            subtitleLang = "иврит";
+            audioLang = "Иврит";
+            return true;
+        }
+        if (l.Contains("hungarian") || l.Contains("венгерск") || l == "hu" || l == "hun")
+        {
+            subtitleLang = "венгерские";
+            audioLang = "Венгерский";
+            return true;
+        }
+        if (l.Contains("malay") || l.Contains("малайск") || l == "ms" || l == "may" || l == "msa")
+        {
+            subtitleLang = "малайские";
+            audioLang = "Малайский";
+            return true;
+        }
+        if (l.Contains("polish") || l.Contains("польск") || l == "pl" || l == "pol")
+        {
+            subtitleLang = "польские";
+            audioLang = "Польский";
+            return true;
+        }
+        if (l.Contains("romanian") || l.Contains("румынск") || l == "ro" || l == "ron" || l == "rum")
+        {
+            subtitleLang = "румынские";
+            audioLang = "Румынский";
+            return true;
+        }
+        if (l.Contains("swedish") || l.Contains("шведск") || l == "sv" || l == "swe")
+        {
+            subtitleLang = "шведские";
+            audioLang = "Шведский";
+            return true;
+        }
+        if (l.Contains("thai") || l.Contains("тайск") || l == "th" || l == "tha")
+        {
+            subtitleLang = "тайские";
+            audioLang = "Тайский";
+            return true;
+        }
+        if (l.Contains("turkish") || l.Contains("турецк") || l == "tr" || l == "tur")
+        {
+            subtitleLang = "турецкие";
+            audioLang = "Турецкий";
+            return true;
+        }
+        if (l.Contains("ukrainian") || l.Contains("украинск") || l == "uk" || l == "ukr")
+        {
+            subtitleLang = "украинские";
+            audioLang = "Украинский";
+            return true;
+        }
+        if (l.Contains("vietnamese") || l.Contains("вьетнамск") || l == "vi" || l == "vie")
+        {
+            subtitleLang = "вьетнамские";
+            audioLang = "Вьетнамский";
+            return true;
+        }
+        if (l.Contains("bulgarian") || l.Contains("болгарск") || l == "bg" || l == "bul")
+        {
+            subtitleLang = "болгарские";
+            audioLang = "Болгарский";
+            return true;
+        }
+        if (l.Contains("croatian") || l.Contains("хорватск") || l == "hr" || l == "hrv" || l == "scr")
+        {
+            subtitleLang = "хорватские";
+            audioLang = "Хорватский";
+            return true;
+        }
+        if (l.Contains("serbian") || l.Contains("сербск") || l == "sr" || l == "srp" || l == "scc")
+        {
+            subtitleLang = "сербские";
+            audioLang = "Сербский";
+            return true;
+        }
+        if (l.Contains("slovak") || l.Contains("словацк") || l == "sk" || l == "slk" || l == "slo")
+        {
+            subtitleLang = "словацкие";
+            audioLang = "Словацкий";
+            return true;
+        }
+        if (l.Contains("slovenian") || l.Contains("словенск") || l == "sl" || l == "slv")
+        {
+            subtitleLang = "словенские";
+            audioLang = "Словенский";
+            return true;
+        }
+        if (l.Contains("estonian") || l.Contains("эстонск") || l == "et" || l == "est")
+        {
+            subtitleLang = "эстонские";
+            audioLang = "Эстонский";
+            return true;
+        }
+        if (l.Contains("latvian") || l.Contains("латышск") || l == "lv" || l == "lav")
+        {
+            subtitleLang = "латышские";
+            audioLang = "Латышский";
+            return true;
+        }
+        if (l.Contains("lithuanian") || l.Contains("литовск") || l == "lt" || l == "lit")
+        {
+            subtitleLang = "литовские";
+            audioLang = "Литовский";
+            return true;
+        }
+        if (l.Contains("icelandic") || l.Contains("исландск") || l == "is" || l == "isl" || l == "ice")
+        {
+            subtitleLang = "исландские";
+            audioLang = "Исландский";
+            return true;
+        }
+        if (l.Contains("filipino") || l.Contains("tagalog") || l.Contains("филиппинск") || l.Contains("тагальск") || l == "tl" || l == "fil" || l == "tgl")
+        {
+            subtitleLang = "филиппинские";
+            audioLang = "Филиппинский";
+            return true;
+        }
+        if (l.Contains("persian") || l.Contains("farsi") || l.Contains("персидск") || l.Contains("фарси") || l == "fa" || l == "fas" || l == "per")
+        {
+            subtitleLang = "персидские";
+            audioLang = "Персидский";
+            return true;
+        }
+        if (l.Contains("georgian") || l.Contains("грузинск") || l == "ka" || l == "kat" || l == "geo")
+        {
+            subtitleLang = "грузинские";
+            audioLang = "Грузинский";
+            return true;
+        }
+        if (l.Contains("armenian") || l.Contains("армянск") || l == "hy" || l == "hye" || l == "arm")
+        {
+            subtitleLang = "армянские";
+            audioLang = "Армянский";
+            return true;
+        }
+        if (l.Contains("kazakh") || l.Contains("казахск") || l == "kk" || l == "kaz")
+        {
+            subtitleLang = "казахские";
+            audioLang = "Казахский";
+            return true;
+        }
+        if (l.Contains("catalan") || l.Contains("каталанск") || l == "ca" || l == "cat")
+        {
+            subtitleLang = "каталанские";
+            audioLang = "Каталанский";
+            return true;
+        }
+        if (l.Contains("basque") || l.Contains("баскск") || l == "eu" || l == "eus" || l == "baq")
+        {
+            subtitleLang = "баскские";
+            audioLang = "Баскский";
+            return true;
+        }
+        if (l.Contains("galician") || l.Contains("галисийск") || l == "gl" || l == "glg")
+        {
+            subtitleLang = "галисийские";
+            audioLang = "Галисийский";
+            return true;
+        }
+        if (l.Contains("albanian") || l.Contains("албанск") || l == "sq" || l == "sqi" || l == "alb")
+        {
+            subtitleLang = "албанские";
+            audioLang = "Албанский";
+            return true;
+        }
+        if (l.Contains("macedonian") || l.Contains("македонск") || l == "mk" || l == "mkd" || l == "mac")
+        {
+            subtitleLang = "македонские";
+            audioLang = "Македонский";
+            return true;
+        }
+        if (l.Contains("bosnian") || l.Contains("боснийск") || l == "bs" || l == "bos")
+        {
+            subtitleLang = "боснийские";
+            audioLang = "Боснийский";
+            return true;
+        }
+        if (l.Contains("tamil") || l.Contains("тамильск") || l == "ta" || l == "tam")
+        {
+            subtitleLang = "тамильские";
+            audioLang = "Тамильский";
+            return true;
+        }
+        if (l.Contains("telugu") || l.Contains("телугу") || l == "te" || l == "tel")
+        {
+            subtitleLang = "телугу";
+            audioLang = "Телугу";
+            return true;
+        }
+        if (l.Contains("urdu") || l.Contains("урду") || l == "ur" || l == "urd")
+        {
+            subtitleLang = "урду";
+            audioLang = "Урду";
+            return true;
+        }
+        if (l.Contains("marathi") || l.Contains("маратхи") || l == "mr" || l == "mar")
+        {
+            subtitleLang = "маратхи";
+            audioLang = "Маратхи";
+            return true;
+        }
+        if (l.Contains("azerbaijani") || l.Contains("азербайджанск") || l == "az" || l == "aze")
+        {
+            subtitleLang = "азербайджанские";
+            audioLang = "Азербайджанский";
+            return true;
+        }
+        if (l.Contains("uzbek") || l.Contains("узбекск") || l == "uz" || l == "uzb")
+        {
+            subtitleLang = "узбекские";
+            audioLang = "Узбекский";
+            return true;
+        }
+        if (l.Contains("mongolian") || l.Contains("монгольск") || l == "mn" || l == "mon")
+        {
+            subtitleLang = "монгольские";
+            audioLang = "Монгольский";
+            return true;
+        }
+        if (l.Contains("irish") || l.Contains("ирландск") || l == "ga" || l == "gle")
+        {
+            subtitleLang = "ирландские";
+            audioLang = "Ирландский";
+            return true;
+        }
+        if (l.Contains("welsh") || l.Contains("валлийск") || l == "cy" || l == "cym" || l == "wel")
+        {
+            subtitleLang = "валлийские";
+            audioLang = "Валлийский";
+            return true;
+        }
+        if (l.Contains("latin") || l.Contains("латынь") || l.Contains("латинск") || l == "la" || l == "lat")
+        {
+            subtitleLang = "латинские";
+            audioLang = "Латынь";
+            return true;
+        }
+        if (l.Contains("esperanto") || l.Contains("эсперанто") || l == "eo" || l == "epo")
+        {
+            subtitleLang = "эсперанто";
+            audioLang = "Эсперанто";
+            return true;
+        }
+        if (l.Contains("swahili") || l.Contains("суахили") || l == "sw" || l == "swa")
+        {
+            subtitleLang = "суахили";
+            audioLang = "Суахили";
+            return true;
+        }
+
+        return false;
+    }
+
     private static string TranslateAudioLanguage(string lang)
     {
-        if (string.IsNullOrEmpty(lang)) return string.Empty;
-        lang = lang.Trim().ToLowerInvariant();
-        if (lang.Contains("russian") || lang.Contains("rus") || lang == "ru") return "Русский";
-        if (lang.Contains("english") || lang.Contains("eng") || lang == "en") return "Английский";
-        if (lang.Contains("japanese") || lang.Contains("jpn") || lang == "ja" || lang == "jp") return "Японский";
-        if (lang.Contains("chinese") || lang == "zh") return "Китайский";
-        if (lang.Contains("korean") || lang == "ko") return "Корейский";
-        if (lang.Contains("german") || lang == "de") return "Немецкий";
-        if (lang.Contains("french") || lang == "fr") return "Французский";
-        if (lang.Contains("spanish") || lang == "es") return "Испанский";
-        if (lang.Contains("portuguese") || lang == "pt") return "Португальский";
-        if (lang.Contains("polish") || lang.Contains("pol") || lang == "pl") return "Польский";
-        if (lang.Contains("turkish") || lang.Contains("tur") || lang == "tr") return "Турецкий";
-        if (lang.Length > 0) return char.ToUpper(lang[0]) + lang.Substring(1);
-        return lang;
+        if (string.IsNullOrWhiteSpace(lang)) return string.Empty;
+        if (TryTranslateLanguage(lang, out _, out string audioLang))
+            return audioLang;
+
+        string trimmed = lang.Trim();
+        if (trimmed.Length > 0) return char.ToUpper(trimmed[0]) + trimmed.Substring(1);
+        return trimmed;
     }
 
     private static string TranslateLanguage(string lang)
     {
-        if (string.IsNullOrEmpty(lang)) return string.Empty;
-        lang = lang.Trim().ToLowerInvariant();
-        if (lang.Contains("brazil") || lang.Contains("(br)")) return "португальские (BR)";
-        if (lang.Contains("latin america") || lang.Contains("(la)")) return "испанские (LA)";
-        if (lang.Contains("portuguese") || lang == "pt") return "португальские";
-        if (lang.Contains("spanish") || lang == "es") return "испанские";
-        if (lang.Contains("chinese (traditional)")) return "китайские (традиционные)";
-        if (lang.Contains("chinese (simplified)")) return "китайские (упрощенные)";
-        if (lang.Contains("chinese") || lang == "zh") return "китайские";
-        if (lang.Contains("korean") || lang == "ko") return "корейские";
-        if (lang.Contains("malay") || lang == "ms") return "малайские";
-        if (lang.Contains("arabic") || lang == "ar") return "арабские";
-        if (lang.Contains("russian") || lang.Contains("rus") || lang == "ru") return "русские";
-        if (lang.Contains("english") || lang.Contains("eng") || lang == "en") return "английские";
-        if (lang.Contains("german") || lang.Contains("ger") || lang == "de") return "немецкие";
-        if (lang.Contains("french") || lang.Contains("fre") || lang == "fr") return "французские";
-        if (lang.Contains("italian") || lang == "it") return "итальянские";
-        if (lang.Contains("indonesian") || lang.Contains("ind") || lang == "id") return "индонезийские";
-        if (lang.Contains("thai") || lang == "th") return "тайские";
-        if (lang.Contains("vietnamese") || lang == "vi") return "вьетнамские";
-        if (lang.Contains("japanese") || lang.Contains("jpn") || lang == "ja" || lang == "jp") return "японские";
-        if (lang.Contains("polish") || lang.Contains("pol") || lang == "pl") return "польские";
-        if (lang.Contains("turkish") || lang.Contains("tur") || lang == "tr") return "турецкие";
-        return lang;
+        if (string.IsNullOrWhiteSpace(lang)) return string.Empty;
+        if (TryTranslateLanguage(lang, out string subLang, out _))
+            return subLang;
+
+        return lang.Trim().ToLowerInvariant();
     }
 }

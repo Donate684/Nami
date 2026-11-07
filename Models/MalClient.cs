@@ -31,7 +31,7 @@ public static class MalClient
 
     static MalClient()
     {
-        HttpClientInstance.Timeout = TimeSpan.FromSeconds(30);
+        HttpClientInstance.Timeout = TimeSpan.FromSeconds(5);
         HttpClientInstance.DefaultRequestHeaders.UserAgent.ParseAdd("AnimeBBCodeFormatter/1.0");
     }
 
